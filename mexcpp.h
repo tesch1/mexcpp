@@ -164,7 +164,7 @@ namespace mexcpp {
   struct BaseMat {
     // M is rows, N is cols
     mxArray *pm;
-    size_t N, M, length;
+    size_t M, N, length;
     // Do *I* own the memory, or does MATLAB?
     bool owned;
 
@@ -362,7 +362,7 @@ namespace mexcpp {
       nFields = fieldNames.size();
       const char *fns[nFields];
 
-      for (int i = 0; i < fieldNames.size(); i++) {
+      for (size_t i = 0; i < fieldNames.size(); i++) {
         fns[i] = fieldNames[i].c_str();
       }
 
@@ -424,12 +424,12 @@ namespace mexcpp {
     SparseMat(Mat<double> &iVec,
               Mat<double> &jVec,
               Mat<double> &wVec,
-              size_t N=-1,
-              size_t M=-1,
+              size_t N=(size_t)-1,
+              size_t M=(size_t)-1,
               bool owned_=false) : BaseMat(0, 0, owned_) {
       mxArray *lhs[1];
       int ret;
-      if (N == -1 || M == -1) {
+      if (N == (size_t)-1 || M == (size_t)-1) {
         // 3 argument call
         mxArray *rhs[] = { iVec.pm, jVec.pm, wVec.pm };
         ret = mexCallMATLAB(1, lhs, 3, rhs, "sparse");
@@ -441,7 +441,8 @@ namespace mexcpp {
         mxDestroyArray(rhs[4]);
       }
 
-      mxAssert(ret == 0, "mexCallMATLAB failed.");
+      if (ret != 0)
+        mexErrMsgTxt("mexCallMATLAB failed.");
       pm = lhs[0];
 
       setPointers();
